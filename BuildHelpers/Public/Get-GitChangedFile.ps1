@@ -48,9 +48,9 @@ function Get-GitChangedFile {
     .LINK
         about_BuildHelpers
     #>
-    [cmdletbinding()]
+    [CmdletBinding()]
     param(
-        [validateScript({ Test-Path $_ -PathType Container })]
+        [ValidateScript( { Test-Path $_ -PathType Container })]
         $Path = $PWD.Path,
 
         $Commit,
@@ -61,55 +61,45 @@ function Get-GitChangedFile {
 
         [switch]$Resolve
     )
+
     $Path = (Resolve-Path $Path).Path
     $GitPathRaw = Invoke-Git rev-parse --show-toplevel -Path $Path
     Write-Verbose "Found git root [$GitPathRaw]"
     $GitPath = Resolve-Path $GitPathRaw
-    if(Test-Path $GitPath)
-    {
+    if (Test-Path $GitPath) {
         Write-Verbose "Using [$GitPath] as repo root"
     }
-    else
-    {
+    else {
         throw "Could not find root of git repo under [$Path].  Tried [$GitPath]"
     }
 
-    if(-not $PSBoundParameters.ContainsKey('Commit'))
-    {
+    if (-not $PSBoundParameters.ContainsKey('Commit')) {
         $Commit = Invoke-Git rev-parse HEAD -Path $GitPath
     }
-    if(-not $Commit)
-    {
+    if (-not $Commit) {
         return
     }
 
     [string[]]$Files = Invoke-Git "diff-tree --no-commit-id --name-only -r $Commit" -Path $GitPath
-    if($Files.Count -gt 0)
-    {
+    if ($Files.Count -gt 0) {
         $Params = @{Collection = $Files}
         Write-Verbose "Found [$($Files.Count)] files with raw values:`n$($Files | Foreach-Object {"'$_'"} | Out-String)"
-        if($Include)
-        {
+        if ($Include) {
             $Files = Invoke-LikeFilter @params -FilterArray $Include
         }
-        if($Exclude)
-        {
+        if ($Exclude) {
             $Files = Invoke-LikeFilter @params -FilterArray $Exclude -Not
         }
-        foreach($item in $Files)
-        {
-            if($Resolve)
-            {
+        foreach ($item in $Files) {
+            if ($Resolve) {
                 ( Resolve-Path (Join-Path $GitPath $Item) ).Path
             }
-            else
-            {
+            else {
                 Join-Path $GitPath $Item
             }
         }
     }
-    else
-    {
+    else {
         Write-Warning "Something went wrong, no files returned:`nIs [$Path], with repo root [$GitPath] a valid git path?"
     }
 }

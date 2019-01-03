@@ -1,4 +1,4 @@
-﻿function Get-NextPowerShellGetVersion {
+function Get-NextPowerShellGetVersion {
     <#
     .SYNOPSIS
         DEPRECATED: Please use Get-NextNugetPackageVersion
@@ -39,20 +39,22 @@
     .LINK
         about_BuildHelpers
     #>
-    [cmdletbinding()]
+    [CmdletBinding()]
     param(
-        [parameter(ValueFromPipelineByPropertyName = $True)]
+        [Parameter(ValueFromPipelineByPropertyName = $True)]
         [string[]]$Name,
 
-        [parameter(ValueFromPipelineByPropertyName = $True)]
+        [Parameter(ValueFromPipelineByPropertyName = $True)]
         [ValidateSet('Module', 'Script')]
         [string]$Type = 'Module',
 
         [string]$Repository = 'PSGallery'
     )
+
     Begin {
         Write-Warning "DEPRECATED: Please use Get-NextNugetPackageVersion"
     }
+
     Process {
         foreach ($Item in $Name) {
             Try {
@@ -109,5 +111,5 @@
                 New-Object System.Version ($Version.Major + 1, 0)
             }
         }
-}
+    }
 }

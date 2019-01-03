@@ -81,10 +81,10 @@ function Set-BuildEnvironment {
     .LINK
         about_BuildHelpers
     #>
-    [CmdLetBinding( SupportsShouldProcess = $false )]
+    [CmdletBinding( SupportsShouldProcess = $false )]
     [System.Diagnostics.CodeAnalysis.SuppressMessage('PSUseShouldProcessForStateChangingFunctions', '')]
     param(
-        [validatescript({ Test-Path $_ -PathType Container })]
+        [ValidateScript( { Test-Path $_ -PathType Container })]
         $Path = $PWD.Path,
 
         [ValidatePattern('\w*')]
@@ -98,39 +98,38 @@ function Set-BuildEnvironment {
 
         [switch]$Passthru,
 
-        [validatescript({
-            if(-not (Get-Command $_ -ErrorAction SilentlyContinue))
+        [ValidateScript(
             {
-                throw "Could not find command at GitPath [$_]"
+                if (-not (Get-Command $_ -ErrorAction SilentlyContinue)) {
+                    throw "Could not find command at GitPath [$_]"
+                }
+                $true
             }
-            $true
-        })]
+        )]
         [string]$GitPath
     )
+
     $GBEParams = @{
-        Path = $Path
-        As = 'hashtable'
+        Path        = $Path
+        As          = 'hashtable'
         BuildOutput = $BuildOutput
     }
-    if($PSBoundParameters.ContainsKey('GitPath')) {
+    if ($PSBoundParameters.ContainsKey('GitPath')) {
         $GBEParams.add('GitPath', $GitPath)
     }
     $BuildHelpersVariables = Get-BuildEnvironment @GBEParams
     foreach ($VarName in $BuildHelpersVariables.Keys) {
-        if($null -ne $BuildHelpersVariables[$VarName]) {
-            $Output = New-Item -Path Env:\ -Name ('{0}{1}' -f $VariableNamePrefix,$VarName) -Value $BuildHelpersVariables[$VarName] -Force:$Force
-            if($Passthru)
-            {
+        if ($null -ne $BuildHelpersVariables[$VarName]) {
+            $Output = New-Item -Path Env:\ -Name ('{0}{1}' -f $VariableNamePrefix, $VarName) -Value $BuildHelpersVariables[$VarName] -Force:$Force
+            if ($Passthru) {
                 $Output
             }
         }
     }
-    if($VariableNamePrefix -eq 'BH' -and $BuildHelpersVariables.ModulePath)
-    {
+    if ($VariableNamePrefix -eq 'BH' -and $BuildHelpersVariables.ModulePath) {
         # Handle existing scripts that reference BHPSModulePath
         $Output = New-Item -Path Env:\ -Name BHPSModulePath -Value $BuildHelpersVariables.ModulePath -Force:$Force
-        if($Passthru)
-        {
+        if ($Passthru) {
             $Output
         }
     }

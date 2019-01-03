@@ -37,9 +37,9 @@ function Set-ModuleFormat {
     .LINK
         about_BuildHelpers
     #>
-    [CmdLetBinding( SupportsShouldProcess )]
+    [CmdletBinding( SupportsShouldProcess )]
     param(
-        [parameter(ValueFromPipeline = $True)]
+        [Parameter(ValueFromPipeline = $True)]
         [Alias('Path')]
         [string]$Name,
 
@@ -47,49 +47,45 @@ function Set-ModuleFormat {
 
         [string]$FormatsRelativePath
     )
-    Process
-    {
-        if(-not $Name)
-        {
+
+    Process {
+        if (-not $Name) {
             $BuildDetails = Get-BuildVariable
             $Name = Join-Path ($BuildDetails.ProjectPath) (Get-ProjectName)
         }
 
         $params = @{
-            Force = $True
+            Force    = $True
             Passthru = $True
-            Name = $Name
+            Name     = $Name
         }
 
         # Create a runspace
         $PowerShell = [Powershell]::Create()
 
         # Add scriptblock to the runspace
-        [void]$PowerShell.AddScript({
-            Param ($Force, $Passthru, $Name)
-            $module = Import-Module -Name $Name -PassThru:$Passthru -Force:$Force
-            $module | Where-Object Path -notin $module.Scripts
+        [void]$PowerShell.AddScript( {
+                Param ($Force, $Passthru, $Name)
+                $module = Import-Module -Name $Name -PassThru:$Passthru -Force:$Force
+                $module | Where-Object Path -notin $module.Scripts
 
-        }).AddParameters($Params)
+            }).AddParameters($Params)
 
         #Invoke the command
         $Module = $PowerShell.Invoke()
 
-        if(-not $Module)
-        {
+        if (-not $Module) {
             Throw "Could not find module '$Name'"
         }
 
         $Parent = $Module.ModuleBase
         $File = "$($Module.Name).psd1"
         $ModulePSD1Path = Join-Path $Parent $File
-        if(-not (Test-Path $ModulePSD1Path))
-        {
+        if (-not (Test-Path $ModulePSD1Path)) {
             Throw "Could not find expected module manifest '$ModulePSD1Path'"
         }
 
-        if(-not $FormatsToProcess)
-        {
+        if (-not $FormatsToProcess) {
             $FormatPath = Join-Path -Path $Parent -ChildPath $FormatsRelativePath
             $FormatList = Get-ChildItem -Path (Join-Path $FormatPath "*.ps1xml")
 

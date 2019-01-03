@@ -1,4 +1,4 @@
-﻿function Get-BuildEnvironmentDetail {
+function Get-BuildEnvironmentDetail {
     <#
     .SYNOPSIS
         Get the details on the build environment
@@ -40,94 +40,103 @@
     .LINK
         about_BuildHelpers
     #>
-    [cmdletbinding()]
+    [CmdletBinding()]
     [OutputType( [String], [Hashtable])]
     param(
-        [validateset('*',
-                     'OperatingSystem',
-                     'PSVersionTable',
-                     'ModulesLoaded',
-                     'ModulesAvailable',
-                     'PSModulePath',
-                     'Path',
-                     'Variables',
-                     'Software',
-                     'Hotfixes',
-                     'Location',
-                     'PackageProvider',
-                     'PackageSource')]
+        [ValidateSet(
+            '*',
+            'OperatingSystem',
+            'PSVersionTable',
+            'ModulesLoaded',
+            'ModulesAvailable',
+            'PSModulePath',
+            'Path',
+            'Variables',
+            'Software',
+            'Hotfixes',
+            'Location',
+            'PackageProvider',
+            'PackageSource'
+        )]
+
         [string[]]$Detail = '*',
+
         [switch]$KillKittens
     )
 
-    if($Detail -contains '*')
-    {
-        $Detail =  'OperatingSystem',
-                   'PSVersionTable',
-                   'ModulesLoaded',
-                   'ModulesAvailable',
-                   'PSModulePath',
-                   'Path',
-                   'Variables',
-                   'Software',
-                   'Hotfixes',
-                   'Location',
-                   'PackageProvider',
-                   'PackageSource'
+    if ($Detail -contains '*') {
+        $Detail = 'OperatingSystem',
+        'PSVersionTable',
+        'ModulesLoaded',
+        'ModulesAvailable',
+        'PSModulePath',
+        'Path',
+        'Variables',
+        'Software',
+        'Hotfixes',
+        'Location',
+        'PackageProvider',
+        'PackageSource'
     }
 
     $Details = @{}
-    switch ($Detail)
-    {
-        'PSVersionTable'   { $Details.set_item($_, $PSVersionTable)}
-        'PSModulePath'     { $Details.set_item($_, ($ENV:PSModulePath -split ';'))}
-        'ModulesLoaded'    { $Details.set_item($_, (
-            Get-Module |
-                Select-Object Name, Version, Path |
-                Sort-Object Name
-        )) }
-        'ModulesAvailable' { $Details.set_item($_, (
-            Get-Module -ListAvailable |
-                Select-Object Name, Version, Path |
-                Sort-Object Name
+    switch ($Detail) {
+        'PSVersionTable' { $Details.set_item($_, $PSVersionTable)}
+        'PSModulePath' { $Details.set_item($_, ($ENV:PSModulePath -split ([IO.Path]::PathSeparator)))}
+        'ModulesLoaded' {
+            $Details.set_item($_, (
+                    Get-Module |
+                        Select-Object Name, Version, Path |
+                        Sort-Object Name
+                ))
+        }
+        'ModulesAvailable' {
+            $Details.set_item($_, (
+                    Get-Module -ListAvailable |
+                        Select-Object Name, Version, Path |
+                        Sort-Object Name
 
-        )) }
-        'Path'             { $Details.set_item($_, ( $ENV:Path -split ';'))}
-        'Variables'        { $Details.set_item($_, ( Get-Variable | Select-Object Name, Value ))}
-        'Software'         { $Details.set_item($_, (
-            Get-InstalledSoftware |
-                Select-Object DisplayName, Publisher, Version, Hive, Arch))}
-        'Hotfixes'         { $Details.set_item($_, ( Get-Hotfix ))}
-        'OperatingSystem'  { $Details.set_item($_, (
-            Get-CimInstance -classname win32_operatingsystem |
-                Select-Object Caption, Version
-        ))}
-        'Location'         { $Details.set_item($_, ( Get-Location ).Path )}
-        'PackageProvider'  { $Details.set_item($_, $(
-            if(Get-Module PackageManagement -ListAvailable)
-            {
-                Get-PackageProvider | Select-Object Name, Version
-            }
-         ))}
-        'PackageSource'    { $Details.set_item($_, $(
-            if(Get-Module PackageManagement -ListAvailable)
-            {
-                Get-PackageSource | Select-Object Name, ProviderName, Location
-            }
-         ))}
+                ))
+        }
+        'Path' { $Details.set_item($_, ( $ENV:Path -split ([IO.Path]::PathSeparator)))}
+        'Variables' { $Details.set_item($_, ( Get-Variable | Select-Object Name, Value ))}
+        'Software' {
+            $Details.set_item($_, (
+                    Get-InstalledSoftware |
+                        Select-Object DisplayName, Publisher, Version, Hive, Arch))
+        }
+        'Hotfixes' { $Details.set_item($_, ( Get-Hotfix ))}
+        'OperatingSystem' {
+            $Details.set_item($_, (
+                    Get-CimInstance -classname win32_operatingsystem |
+                        Select-Object Caption, Version
+                ))
+        }
+        'Location' { $Details.set_item($_, ( Get-Location ).Path )}
+        'PackageProvider' {
+            $Details.set_item($_, $(
+                    if (Get-Module PackageManagement -ListAvailable) {
+                        Get-PackageProvider | Select-Object Name, Version
+                    }
+                ))
+        }
+        'PackageSource' {
+            $Details.set_item($_, $(
+                    if (Get-Module PackageManagement -ListAvailable) {
+                        Get-PackageSource | Select-Object Name, ProviderName, Location
+                    }
+                ))
+        }
     }
 
-    if($KillKittens)
-    {
+    if ($KillKittens) {
         $lines = '----------------------------------------------------------------------'
-        foreach($Key in $Details.Keys)
-        {
+        foreach ($Key in $Details.Keys) {
             "`n$lines`n$Key`n`n"
             $Details.get_item($key) | Out-Host
         }
     }
-    else
-    {
+    else {
         $Details
     }
 }

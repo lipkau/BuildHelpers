@@ -24,33 +24,31 @@ function Get-ModuleFunction {
     .LINK
         about_BuildHelpers
     #>
-    [cmdletbinding()]
+    [CmdletBinding()]
     param(
-        [parameter(ValueFromPipeline = $True)]
+        [Parameter(ValueFromPipeline = $True)]
         [Alias('Path')]
         [string]$Name
     )
-    Process
-    {
-        if(-not $Name)
-        {
+    Process {
+        if (-not $Name) {
             $BuildDetails = Get-BuildVariable
             $Name = Join-Path ($BuildDetails.ProjectPath) (Get-ProjectName)
         }
 
         $params = @{
-            Force = $True
+            Force    = $True
             Passthru = $True
-            Name = $Name
+            Name     = $Name
         }
 
         # Create a runspace, add script to run
         $PowerShell = [Powershell]::Create()
-        [void]$PowerShell.AddScript({
-            Param ($Force, $Passthru, $Name)
-            Import-Module -Name $Name -PassThru:$Passthru -Force:$Force
+        [void]$PowerShell.AddScript( {
+                Param ($Force, $Passthru, $Name)
+                Import-Module -Name $Name -PassThru:$Passthru -Force:$Force
 
-        }).AddParameters($Params)
+            }).AddParameters($Params)
 
         ( $PowerShell.Invoke() ).ExportedFunctions.Keys
 

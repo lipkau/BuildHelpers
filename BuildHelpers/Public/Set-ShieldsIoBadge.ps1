@@ -43,45 +43,38 @@ function Set-ShieldsIoBadge {
     .LINK
         about_BuildHelpers
     #>
-    [cmdletbinding(supportsshouldprocess)]
+    [CmdletBinding( SupportsShouldProcess )]
     param(
-        [string]
-        $Subject = 'Build',
+        [string]$Subject = 'Build',
 
         $Status = 0,
 
-        [string]
-        $Color,
+        [string]$Color,
 
-        [switch]
-        $AsPercentage,
+        [switch]$AsPercentage,
 
-        [string]
-        $Path = "$Env:BHProjectPath\Readme.md"
+        [string]$Path = "$Env:BHProjectPath\Readme.md"
     )
-    Process
-    {
-        if (-not $Color)
-        {
-            $Color = switch ($Status)
-            {
+
+    Process {
+        if (-not $Color) {
+            $Color = switch ($Status) {
                 {$_ -in 90..100 -or $_ -eq 'Pass'} { 'brightgreen' }
-                {$_ -in 75..89}                    { 'yellow' }
-                {$_ -in 60..74}                    { 'orange' }
-                {$_ -in 0..59 -or $_ -eq 'Fail'}   { 'red' }
-                default                            { 'lightgrey' }
+                {$_ -in 75..89} { 'yellow' }
+                {$_ -in 60..74} { 'orange' }
+                {$_ -in 0..59 -or $_ -eq 'Fail'} { 'red' }
+                default { 'lightgrey' }
             }
         }
 
-        if ($AsPercentage)
-        {
+        if ($AsPercentage) {
             $Percent = '%25'
         }
 
-        if ($PSCmdlet.ShouldProcess($Path))
-        {
-            $ReadmeContent = (Get-Content $Path)
-            $ReadmeContent = $ReadmeContent -replace "!\[$($Subject)\].+\)", "![$($Subject)](https://img.shields.io/badge/$Subject-$Status$Percent-$Color.svg)"
+        $ReadmeContent = (Get-Content $Path)
+        $ReadmeContent = $ReadmeContent -replace "!\[$($Subject)\].+\)", "![$($Subject)](https://img.shields.io/badge/$Subject-$Status$Percent-$Color.svg)"
+
+        if ($PSCmdlet.ShouldProcess("Updating README at [$Path]")) {
             $ReadmeContent | Set-Content -Path $Path
         }
     }

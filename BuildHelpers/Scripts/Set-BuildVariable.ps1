@@ -65,40 +65,34 @@
 .LINK
     about_BuildHelpers
 #>
-[cmdletbinding()]
+[CmdletBinding()]
 param(
     $Path = $PWD.Path,
 
-    [validatescript({
-        if(-not ('Global', 'Local', 'Script', 'Current' -contains $_ -or (($_ -as [int]) -ge 0)))
+    [validatescript(
         {
-            throw "'$_' is an invalid Scope. For more information, run Get-Help Set-BuildVariable -Parameter Scope"
+            if (-not ('Global', 'Local', 'Script', 'Current' -contains $_ -or (($_ -as [int]) -ge 0))) {
+                throw "'$_' is an invalid Scope. For more information, run Get-Help Set-BuildVariable -Parameter Scope"
+            }
+            $true
         }
-        $true
-    })]
-    [string]
-    $Scope,
+    )]
+    [string]$Scope,
 
     [ValidatePattern('\w*')]
-    [String]
-    $VariableNamePrefix = 'BH'
+    [String]$VariableNamePrefix = 'BH'
 )
 
-if($MyInvocation.InvocationName -eq '.')
-{
-    if(-not $Scope)
-    {
+if ($MyInvocation.InvocationName -eq '.') {
+    if (-not $Scope) {
         $Scope = '0'
     }
 }
-else
-{
-    if($Scope -eq 'Script')
-    {
+else {
+    if ($Scope -eq 'Script') {
         throw 'The script scope may only be used with dot-sourced Set-BuildVariable.'
     }
-    if(-not $Scope)
-    {
+    if (-not $Scope) {
         $Scope = '1'
     }
 }
@@ -107,15 +101,15 @@ ${Build.Vars} = Get-BuildVariable -Path $Path
 ${Build.ProjectName} = Get-ProjectName -Path $Path
 ${Build.ManifestPath} = Get-PSModuleManifest -Path $Path
 $BuildHelpersVariables = @{
-    BuildSystem = ${Build.Vars}.BuildSystem
-    ProjectPath = ${Build.Vars}.ProjectPath
-    BranchName  = ${Build.Vars}.BranchName
-    CommitMessage = ${Build.Vars}.CommitMessage
-    BuildNumber = ${Build.Vars}.BuildNumber
-    ProjectName = ${Build.ProjectName}
+    BuildSystem      = ${Build.Vars}.BuildSystem
+    ProjectPath      = ${Build.Vars}.ProjectPath
+    BranchName       = ${Build.Vars}.BranchName
+    CommitMessage    = ${Build.Vars}.CommitMessage
+    BuildNumber      = ${Build.Vars}.BuildNumber
+    ProjectName      = ${Build.ProjectName}
     PSModuleManifest = ${Build.ManifestPath}
-    ModulePath = $(Split-Path -Path ${Build.ManifestPath} -Parent)
+    ModulePath       = $(Split-Path -Path ${Build.ManifestPath} -Parent)
 }
 foreach ($VarName in $BuildHelpersVariables.Keys) {
-    Set-Variable -Scope $Scope -Name ('{0}{1}' -f $VariableNamePrefix,$VarName) -Value $BuildHelpersVariables[$VarName]
+    Set-Variable -Scope $Scope -Name ('{0}{1}' -f $VariableNamePrefix, $VarName) -Value $BuildHelpersVariables[$VarName]
 }

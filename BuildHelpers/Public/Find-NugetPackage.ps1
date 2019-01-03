@@ -1,5 +1,3 @@
-﻿# All credit and major props to Joel Bennett for this simplified solution that doesn't depend on PowerShellGet
-# https://gist.github.com/Jaykul/1caf0d6d26380509b04cf4ecef807355
 function Find-NugetPackage {
     <#
     .SYNOPSIS
@@ -48,6 +46,10 @@ function Find-NugetPackage {
 
         # Get a list of every PSDeploy release on the PowerShell gallery feed
 
+    .NOTES
+        All credit and major props to Joel Bennett for this simplified solution that doesn't depend on PowerShellGet
+        https://gist.github.com/Jaykul/1caf0d6d26380509b04cf4ecef807355
+
     .LINK
         https://github.com/RamblingCookieMonster/BuildHelpers
 
@@ -59,6 +61,7 @@ function Find-NugetPackage {
         # The name of a package to find
         [Parameter(Mandatory)]
         $Name,
+
         # The repository api URL -- like https://www.powershellgallery.com/api/v2/ or https://www.nuget.org/api/v2/
         $PackageSourceUrl = 'https://www.powershellgallery.com/api/v2/',
 
@@ -69,33 +72,32 @@ function Find-NugetPackage {
     )
 
     #Ugly way to do this.  Prefer islatest, otherwise look for version, otherwise grab all matching modules
-    if($IsLatest)
-    {
+    if ($IsLatest) {
         Write-Verbose "Searching for latest [$name] module"
         $URI = Join-Part -Separator / -Parts $PackageSourceUrl, "Packages?`$filter=Id eq '$name' and IsLatestVersion"
     }
-    elseif($PSBoundParameters.ContainsKey($Version))
-    {
+    elseif ($PSBoundParameters.ContainsKey($Version)) {
         Write-Verbose "Searching for version [$version] of [$name]"
         $URI = Join-Part -Separator / -Parts $PackageSourceUrl, "Packages?`$filter=Id eq '$name' and Version eq '$Version'"
     }
-    else
-    {
+    else {
         Write-Verbose "Searching for all versions of [$name] module"
-        $URI = Join-Part -Separator / -Parts $PackageSourceUrl ,"Packages?`$filter=Id eq '$name'"
+        $URI = Join-Part -Separator / -Parts $PackageSourceUrl , "Packages?`$filter=Id eq '$name'"
     }
 
     Invoke-RestMethod $URI |
-    Select-Object @{n='Name';ex={$_.title.('#text')}},
-                  @{n='Author';ex={$_.author.name}},
-                  @{n='Version';ex={
-                    if($_.properties.NormalizedVersion){
-                      $_.properties.NormalizedVersion
-                    }else{
-                      $_.properties.Version
-                    }
-                  }},
-                  @{n='Uri';ex={$_.Content.src}},
-                  @{n='Description';ex={$_.properties.Description}},
-                  @{n='Properties';ex={$_.properties}}
+        Select-Object @{n = 'Name'; ex = {$_.title.('#text')}},
+    @{n = 'Author'; ex = {$_.author.name}},
+    @{n = 'Version'; ex = {
+            if ($_.properties.NormalizedVersion) {
+                $_.properties.NormalizedVersion
+            }
+            else {
+                $_.properties.Version
+            }
+        }
+    },
+    @{n = 'Uri'; ex = {$_.Content.src}},
+    @{n = 'Description'; ex = {$_.properties.Description}},
+    @{n = 'Properties'; ex = {$_.properties}}
 }

@@ -19,26 +19,25 @@ function Add-TestResultToAppveyor {
     [OutputType([void])]
     Param (
         # Appveyor Job ID
-        [String]
-        $APPVEYOR_JOB_ID = $Env:APPVEYOR_JOB_ID,
+        [String]$APPVEYOR_JOB_ID = $Env:APPVEYOR_JOB_ID,
 
-        [ValidateSet('mstest','xunit','nunit','nunit3','junit')]
+        [ValidateSet('mstest', 'xunit', 'nunit', 'nunit3', 'junit')]
         $ResultType = 'nunit',
 
         # List of files to be uploaded
-        [Parameter(Mandatory,
-                   Position,
-                   ValueFromPipeline,
-                   ValueFromPipelineByPropertyName,
-                   ValueFromRemainingArguments
+        [Parameter(
+            Mandatory,
+            Position,
+            ValueFromPipeline,
+            ValueFromPipelineByPropertyName,
+            ValueFromRemainingArguments
         )]
         [Alias("FullName")]
-        [string[]]
-        $TestFile
+        [string[]]$TestFile
     )
 
     begin {
-            $wc = New-Object 'System.Net.WebClient'
+        $wc = New-Object 'System.Net.WebClient'
     }
 
     process {

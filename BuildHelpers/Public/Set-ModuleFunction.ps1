@@ -25,7 +25,7 @@ function Set-ModuleFunction {
     .LINK
         about_BuildHelpers
     #>
-    [CmdLetBinding( SupportsShouldProcess )]
+    [CmdletBinding( SupportsShouldProcess )]
     param(
         [parameter(ValueFromPipeline = $True)]
         [Alias('Path')]
@@ -33,44 +33,40 @@ function Set-ModuleFunction {
 
         [string[]]$FunctionsToExport
     )
-    Process
-    {
-        if(-not $Name)
-        {
+
+    Process {
+        if (-not $Name) {
             $BuildDetails = Get-BuildVariable
             $Name = Join-Path ($BuildDetails.ProjectPath) (Get-ProjectName)
         }
 
         $params = @{
-            Force = $True
+            Force    = $True
             Passthru = $True
-            Name = (Resolve-Path $Name).Path
+            Name     = (Resolve-Path $Name).Path
         }
 
         # Create a runspace, add script to run
         $PowerShell = [Powershell]::Create()
-        [void]$PowerShell.AddScript({
-            Param ($Force, $Passthru, $Name)
-            $module = Import-Module -Name $Name -PassThru:$Passthru -Force:$Force
-            $module | Where-Object {$_.Path -notin $module.Scripts}
-        }).AddParameters($Params)
+        [void]$PowerShell.AddScript( {
+                Param ($Force, $Passthru, $Name)
+                $module = Import-Module -Name $Name -PassThru:$Passthru -Force:$Force
+                $module | Where-Object {$_.Path -notin $module.Scripts}
+            }).AddParameters($Params)
 
         #Consider moving this to a runspace or job to keep session clean
         $Module = $PowerShell.Invoke()
-        if(-not $Module)
-        {
+        if (-not $Module) {
             Throw "Could not find module '$Name'"
         }
-        if(-not $FunctionsToExport)
-        {
+        if (-not $FunctionsToExport) {
             $FunctionsToExport = @( $Module.ExportedFunctions.Keys )
         }
 
         $Parent = $Module.ModuleBase
         $File = "$($Module.Name).psd1"
         $ModulePSD1Path = Join-Path $Parent $File
-        if(-not (Test-Path $ModulePSD1Path))
-        {
+        if (-not (Test-Path $ModulePSD1Path)) {
             Throw "Could not find expected module manifest '$ModulePSD1Path'"
         }
 

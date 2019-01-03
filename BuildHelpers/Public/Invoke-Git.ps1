@@ -1,5 +1,5 @@
-﻿Function Invoke-Git {
-<#
+Function Invoke-Git {
+    <#
     .SYNOPSIS
         Wrapper to invoke git and return streams
 
@@ -56,10 +56,12 @@
     .LINK
         about_BuildHelpers
     #>
-    [cmdletbinding()]
+    [CmdletBinding()]
     param(
-        [parameter(Position = 0,
-                   ValueFromRemainingArguments = $true)]
+        [Parameter(
+            Position = 0,
+            ValueFromRemainingArguments = $true
+        )]
         $Arguments,
 
         $NoWindow = $true,
@@ -70,20 +72,21 @@
         $Quiet,
         $Split = "`n",
         $Raw,
-        [validatescript({
-            if(-not (Get-Command $_ -ErrorAction SilentlyContinue))
+        [ValidateScript(
             {
-                throw "Could not find command at GitPath [$_]"
+                if (-not (Get-Command $_ -ErrorAction SilentlyContinue)) {
+                    throw "Could not find command at GitPath [$_]"
+                }
+                $true
             }
-            $true
-        })]
+        )]
         [string]$GitPath = 'git'
     )
 
     $Path = (Resolve-Path $Path).Path
     # http://stackoverflow.com/questions/8761888/powershell-capturing-standard-out-and-error-with-start-process
     $pinfo = New-Object System.Diagnostics.ProcessStartInfo
-    if(!$PSBoundParameters.ContainsKey('GitPath')) {
+    if (!$PSBoundParameters.ContainsKey('GitPath')) {
         $GitPath = (Get-Command $GitPath -ErrorAction Stop)[0].Path
     }
     $pinfo.FileName = $GitPath
@@ -93,8 +96,7 @@
     $pinfo.RedirectStandardOutput = $RedirectStandardOutput
     $pinfo.UseShellExecute = $UseShellExecute
     $pinfo.WorkingDirectory = $Path
-    if($PSBoundParameters.ContainsKey('Arguments'))
-    {
+    if ($PSBoundParameters.ContainsKey('Arguments')) {
         $pinfo.Arguments = $Arguments
         $Command = "$Command $Arguments"
     }
@@ -102,50 +104,40 @@
     $p.StartInfo = $pinfo
     $null = $p.Start()
     $p.WaitForExit()
-    if($Quiet)
-    {
+    if ($Quiet) {
         return
     }
-    else
-    {
+    else {
         #there was a newline in output...
-        if($stdout = $p.StandardOutput.ReadToEnd())
-        {
-            if($split)
-            {
+        if ($stdout = $p.StandardOutput.ReadToEnd()) {
+            if ($split) {
                 $stdout = $stdout -split "`n"  | Where-Object {$_}
             }
-            $stdout = foreach($item in @($stdout)){
+            $stdout = foreach ($item in @($stdout)) {
                 $item.trim()
             }
         }
-        if($stderr = $p.StandardError.ReadToEnd())
-        {
-            if($split)
-            {
+        if ($stderr = $p.StandardError.ReadToEnd()) {
+            if ($split) {
                 $stderr = $stderr -split "`n" | Where-Object {$_}
             }
-            $stderr = foreach($item in @($stderr)){
+            $stderr = foreach ($item in @($stderr)) {
                 $item.trim()
             }
         }
 
-        if($Raw)
-        {
+        if ($Raw) {
             [pscustomobject]@{
                 Command = $Command
-                Output = $stdout
-                Error = $stderr
+                Output  = $stdout
+                Error   = $stderr
             }
         }
-        else
-        {
-            if($stdout)
-            {
+        else {
+            if ($stdout) {
                 $stdout
             }
-            if($stderr)
-            {
+            if ($stderr) {
                 Write-Error $stderr.trim()
             }
         }

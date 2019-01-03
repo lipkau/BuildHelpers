@@ -1,4 +1,4 @@
-﻿function Get-PSModuleManifest {
+function Get-PSModuleManifest {
     <#
     .SYNOPSIS
         Get the PowerShell module manifest for a project
@@ -38,7 +38,7 @@
     .LINK
         about_BuildHelpers
     #>
-    [cmdletbinding()]
+    [CmdletBinding()]
     [OutputType( [String] )]
     param(
         $Path = $PWD.Path
@@ -49,48 +49,39 @@
     $CurrentFolder = Split-Path $Path -Leaf
     $ExpectedPath = Join-Path -Path $Path -ChildPath $CurrentFolder
     $ExpectedManifest = Join-Path -Path $ExpectedPath -ChildPath "$CurrentFolder.psd1"
-    if(Test-Path $ExpectedManifest)
-    {
+    if (Test-Path $ExpectedManifest) {
         $ExpectedManifest
     }
-    else
-    {
+    else {
         # Look for properly organized modules
         $ProjectPaths = Get-ChildItem $Path -Directory |
             ForEach-Object {
-                $ThisFolder = $_
-                $ExpectedManifest = Join-Path $ThisFolder.FullName "$($ThisFolder.Name).psd1"
-                If( Test-Path $ExpectedManifest)
-                {
-                    $ExpectedManifest
-                }
+            $ThisFolder = $_
+            $ExpectedManifest = Join-Path $ThisFolder.FullName "$($ThisFolder.Name).psd1"
+            If ( Test-Path $ExpectedManifest) {
+                $ExpectedManifest
             }
+        }
 
-        if( @($ProjectPaths).Count -gt 1 )
-        {
+        if ( @($ProjectPaths).Count -gt 1 ) {
             Write-Warning "Found more than one project path via subfolders with psd1 files"
             $ProjectPaths
         }
-        elseif( @($ProjectPaths).Count -eq 1 )
-        {
+        elseif ( @($ProjectPaths).Count -eq 1 ) {
             $ProjectPaths
         }
         #PSD1 in root of project - ick, but happens.
-        elseif( Test-Path "$ExpectedPath.psd1" )
-        {
+        elseif ( Test-Path "$ExpectedPath.psd1" ) {
             "$ExpectedPath.psd1"
         }
         # PSD1 in Source or Src folder
-        elseif( Get-Item "$Path\S*rc*\*.psd1" -OutVariable SourceManifests)
-        {
-            If ( $SourceManifests.Count -gt 1 )
-            {
+        elseif ( Get-Item "$Path\S*rc*\*.psd1" -OutVariable SourceManifests) {
+            If ( $SourceManifests.Count -gt 1 ) {
                 Write-Warning "Found more than one project manifest in the Source folder"
             }
             $SourceManifests.FullName
         }
-        else
-        {
+        else {
             Write-Warning "Could not find a PowerShell module manifest from $($Path)"
         }
     }

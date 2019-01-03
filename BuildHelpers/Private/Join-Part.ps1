@@ -46,18 +46,18 @@ function Join-Part {
         http://stackoverflow.com/questions/9593535/best-way-to-Join-Part-with-a-separator-in-powershell
 
     #>
-    [cmdletbinding()]
+    [CmdletBinding()]
     param
     (
         [string]$Separator = "/",
 
-        [parameter(ValueFromRemainingArguments=$true)]
+        [parameter(ValueFromRemainingArguments = $true)]
         [string[]]$Parts = $null
     )
 
     ( $Parts |
-        Where-Object { $_ } |
-        Foreach-Object { ( [string]$_ ).trim($Separator) } |
-        Where-Object { $_ }
+            Where-Object { $_ } |
+            Foreach-Object { ( [string]$_ ).trim($Separator) } |
+            Where-Object { $_ }
     ) -join $Separator
 }

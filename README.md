@@ -1,7 +1,6 @@
-[![Build status](https://ci.appveyor.com/api/projects/status/joxudd6qrahtr802?svg=true)](https://ci.appveyor.com/project/RamblingCookieMonster/buildhelpers)
+# BuildHelpers
 
-BuildHelpers
-==============
+[![Build status](https://ci.appveyor.com/api/projects/status/joxudd6qrahtr802?svg=true)](https://ci.appveyor.com/project/RamblingCookieMonster/buildhelpers)
 
 This is a quick and dirty PowerShell module with a variety of helper functions for PowerShell CI/CD scenarios.
 

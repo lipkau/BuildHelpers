@@ -62,58 +62,59 @@ function Get-BuildEnvironment {
     .LINK
         about_BuildHelpers
     #>
-    [cmdletbinding()]
+    [CmdletBinding()]
     param(
-        [validatescript({ Test-Path $_ -PathType Container })]
+        [ValidateScript( { Test-Path $_ -PathType Container })]
         $Path = $PWD.Path,
 
         [string]$BuildOutput = '$ProjectPath\BuildOutput',
 
-        [validatescript({
-            if(-not (Get-Command $_ -ErrorAction SilentlyContinue))
+        [ValidateScript(
             {
-                throw "Could not find command at GitPath [$_]"
+                if (-not (Get-Command $_ -ErrorAction SilentlyContinue)) {
+                    throw "Could not find command at GitPath [$_]"
+                }
+                $true
             }
-            $true
-        })]
+        )]
         [string]$GitPath,
 
-        [validateset('object', 'hashtable')]
+        [ValidateSet('object', 'hashtable')]
         [string]$As = 'object'
     )
+
     $GBVParams = @{Path = $Path}
-    if($PSBoundParameters.ContainsKey('GitPath'))
-    {
+    if ($PSBoundParameters.ContainsKey('GitPath')) {
         $GBVParams.add('GitPath', $GitPath)
     }
     ${Build.Vars} = Get-BuildVariable @GBVParams
     ${Build.ProjectName} = Get-ProjectName -Path $Path
     ${Build.ManifestPath} = Get-PSModuleManifest -Path $Path
-    if( ${Build.ManifestPath} ) {
+    if ( ${Build.ManifestPath} ) {
         ${Build.ModulePath} = Split-Path -Path ${Build.ManifestPath} -Parent
     }
     else {
         ${Build.ModulePath} = $null
     }
     $BuildHelpersVariables = [ordered]@{
-        BuildSystem = ${Build.Vars}.BuildSystem
-        ProjectPath = ${Build.Vars}.ProjectPath
-        BranchName  = ${Build.Vars}.BranchName
-        CommitMessage = ${Build.Vars}.CommitMessage
-        BuildNumber = ${Build.Vars}.BuildNumber
-        ProjectName = ${Build.ProjectName}
+        BuildSystem      = ${Build.Vars}.BuildSystem
+        ProjectPath      = ${Build.Vars}.ProjectPath
+        BranchName       = ${Build.Vars}.BranchName
+        CommitMessage    = ${Build.Vars}.CommitMessage
+        BuildNumber      = ${Build.Vars}.BuildNumber
+        ProjectName      = ${Build.ProjectName}
         PSModuleManifest = ${Build.ManifestPath}
-        ModulePath = ${Build.ModulePath}
+        ModulePath       = ${Build.ModulePath}
     }
-    foreach($VarName in $BuildHelpersVariables.keys){
+    foreach ($VarName in $BuildHelpersVariables.keys) {
         $BuildOutput = $BuildOutput -replace "\`$$VarName", $BuildHelpersVariables[$VarName]
     }
     $BuildOutput = $ExecutionContext.SessionState.Path.GetUnresolvedProviderPathFromPSPath($BuildOutput)
     $BuildHelpersVariables.add('BuildOutput', $BuildOutput)
-    if($As -eq 'object') {
+    if ($As -eq 'object') {
         return [pscustomobject]$BuildHelpersVariables
     }
-    if($As -eq 'hashtable') {
+    if ($As -eq 'hashtable') {
         return $BuildHelpersVariables
     }
 }
